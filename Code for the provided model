@@ -1,0 +1,50 @@
+import pandas as pd  # For handling datasets
+import matplotlib.pyplot as plt  # For plotting graphs
+from sklearn.model_selection import train_test_split  # Splitting dataset into training and testing
+from sklearn.svm import SVR  # Support Vector Regression model for price prediction
+
+# Stock price data provided in the assignment
+data = {
+    "Date": pd.date_range(start="2024-01-01", periods=20, freq='D'),
+    "Open": [351.94, 346.18, 354.08, 499.56, 410.16, 402.98, 383.61, 434.07, 126.96, 219.64,
+             391.57, 120.56, 181.10, 378.35, 229.77, 466.26, 171.25, 344.37, 422.80, 221.48],
+    "High": [483.61, 275.02, 247.60, 408.71, 198.04, 495.90, 139.08, 217.85, 266.81, 345.25,
+             399.32, 298.69, 495.27, 253.93, 181.27, 415.63, 249.64, 404.73, 426.87, 405.63],
+    "Low": [462.03, 487.72, 354.35, 279.81, 266.92, 111.22, 492.13, 176.36, 160.35, 356.64,
+            242.61, 253.70, 301.31, 310.76, 116.70, 204.93, 358.78, 182.27, 231.40, 250.28],
+    "Close": [395.72, 464.80, 312.06, 446.95, 395.55, 125.45, 269.37, 309.60, 415.36, 360.02,
+              236.81, 437.20, 229.40, 278.35, 140.78, 357.29, 278.46, 322.98, 250.06, 411.94],
+    "Volume": [16115, 28933, 4320, 41380, 41334, 43038, 46257, 30252, 2997, 45722,
+               28428, 43619, 48848, 19476, 44947, 31312, 13877, 40507, 3775, 49633]
+}
+
+# Convert data to DataFrame
+df = pd.DataFrame(data)
+
+# Shift 'Close' column to create a target variable (next day's closing price)
+df['Target'] = df['Close'].shift(-1)
+df.dropna(inplace=True)  # Remove last row since it has NaN in 'Target'
+
+# Splitting features and target variable
+X = df[['Open', 'High', 'Low', 'Close', 'Volume']]
+y = df['Target']
+
+# Splitting into training (80%) and testing (20%) sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Initialize and train the Support Vector Regression model
+model = SVR(kernel='rbf')
+model.fit(X_train, y_train)
+
+# Predict stock prices on test data
+y_pred = model.predict(X_test)
+
+# Plot actual vs. predicted prices
+plt.figure(figsize=(10, 5))
+plt.plot(y_test.values, label='Actual Prices', color='blue')
+plt.plot(y_pred, label='Predicted Prices', color='red')
+plt.xlabel("Days")
+plt.ylabel("Stock Price")
+plt.legend()
+plt.title("Stock Price Movement Prediction")
+plt.show()
